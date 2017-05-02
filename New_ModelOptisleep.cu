@@ -117,7 +117,7 @@ __global__ void kernel_shift (int arrLen, int arrSize, float* y, float* result)
 	__shared__ int ignoreFlag[256];
 
 	for(i = 0; i < 256;i++)
-	if((blockIdx.x != 31) && ((blockIdx.y >= 4 && blockIdx.y < 12) || (blockIdx.y >=20 && blockIdx.y < 28)))
+	if((blockIdx.y != 31) && ((blockIdx.x >= 4 && blockIdx.x < 12) || (blockIdx.x >=20 && blockIdx.x < 28)))
 		ignoreFlag[i] = 1;
 	else
 		ignoreFlag[i] = 0;
@@ -245,7 +245,10 @@ int main(int argc, char **argv){
 				do {
 					for (iterCount =0; iterCount < ITERS; iterCount++)
 					{
-						kernel_sor_2d<<<NUM_BLOCKS, NUM_THREADS_PER_BLOCK>>>(arrLen, arrSize, d_x, d_y, d_result, w_drift);
+						if (iterCount % 10)
+							kernel_shift<<<NUM_BLOCKS, NUM_THREADS_PER_BLOCK>>>(arrLen, arrSize, d_y, d_result);
+						else
+							kernel_sor_2d<<<NUM_BLOCKS, NUM_THREADS_PER_BLOCK>>>(arrLen, arrSize, d_x, d_y, d_result, w_drift);
 						CUDA_SAFE_CALL(cudaDeviceSynchronize());
 					}		
 
