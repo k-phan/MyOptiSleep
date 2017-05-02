@@ -125,7 +125,7 @@ __global__ void kernel_shift (int arrLen, int arrSize, float* y, float* result)
 	for(i = tid; i < arrSize; i += threadN) {
 		__syncthreads();
 		if(!ignoreFlag[tid%256]){
-			result[i+16*arrLen] = y[i];
+			result[(((i+16*arrLen)%arrSize)+arrSize)%arrSize] = y[i];
 		}
 		__syncthreads();
 		y[i] = result[i];
@@ -245,10 +245,7 @@ int main(int argc, char **argv){
 				do {
 					for (iterCount =0; iterCount < ITERS; iterCount++)
 					{
-						if (iterCount % 10)
-							kernel_shift<<<NUM_BLOCKS, NUM_THREADS_PER_BLOCK>>>(arrLen, arrSize, d_y, d_result);
-						else
-							kernel_sor_2d<<<NUM_BLOCKS, NUM_THREADS_PER_BLOCK>>>(arrLen, arrSize, d_x, d_y, d_result, w_drift);
+						kernel_sor_2d<<<NUM_BLOCKS, NUM_THREADS_PER_BLOCK>>>(arrLen, arrSize, d_x, d_y, d_result, w_drift);
 						CUDA_SAFE_CALL(cudaDeviceSynchronize());
 					}		
 
@@ -263,6 +260,10 @@ int main(int argc, char **argv){
 					CUDA_SAFE_CALL(cudaDeviceSynchronize());
 
 					stopCount++;
+
+					kernel_shift<<<NUM_BLOCKS, NUM_THREADS_PER_BLOCK>>>(arrLen, arrSize, d_y, d_result);
+					CUDA_SAFE_CALL(cudaDeviceSynchronize());
+
 					if(stopCount == 3 || stopCount == 6 || stopCount == 12 || 
 						stopCount == 25 || stopCount == 50 || stopCount == 100) {
 						printf("scale=%d\n", stopCount);
