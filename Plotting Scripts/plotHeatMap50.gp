@@ -1,5 +1,5 @@
-set terminal pdf
-set output "scale50.pdf"
+set terminal png
+set output "scale50.png"
 set title '50,000 Iterations'
 set xlabel 'Bottom Side Wall'
 set ylabel 'Left Side Wall'
